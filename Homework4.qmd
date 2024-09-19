@@ -1,0 +1,276 @@
+---
+title: "Homework4"
+author: "Upendra Joshi"
+format: html
+editor: visual
+---
+
+## Task 1 Conceptual Questions
+
+Please answer following questions
+
+### 1. If your working directory is myfolder/homework/, what relative path would you specify to get the file located at myfolder/MyData.csv?
+
+> If the file is one folder up from the working directory then we can read is using following code `my_data <- read_csv ("../MyData.csv")`
+
+### 2. What are the major benefits of using R projects?
+
+>**Organization**: Keeps all files related to a project in one place. 
+>**Reproducibility**: Ensures that scripts run in the same environment.
+>**Version Control**: Integrates well with Git for version control. 
+>**Portability**: Makes it easier to share projects with others.
+
+### 3. What is git and what is github?
+
+>**Git**: A distributed version control system for tracking changes in source code during software development.
+>**Github**: A web-based platform that uses Git for version control and provides a collaborative environment for developers.
+
+### 4. What are the two main differences between a tibble and a data.frame?
+>**Printing**: Tibbles have a more readable print method that shows only the first 10 rows and all columns that fit on screen.
+>**Sub-setting**: Tibbles do not simplify types when subsetting, whereas data.frames might.
+
+### 5. Rewrite the following nested function call using BaseR’s chaining operator:
+`arrange(filter(select(as_tibble(iris), starts_with("Petal"), Species), Petal.Length <
+1.55), Species)`
+
+> In R, the chaining operator %>% is provided by the `magrittr` package and is widely used in the `dplyr` package for data manipulation. Following is the example how to write a same code in Base R using chaining operator.
+>`as_tibble(iris) %>%
+  select(starts_with("Petal"), Species) %>%
+  filter(Petal.Length < 1.55) %>%
+  arrange(Species)`
+  
+  
+## Task 2 Reading Delimited Data
+### Glass Data
+
+1. Read this data into R directly from the URL using functions from the tidyverse. Notice that the data
+doesn’t include column names - add those (in a manner of your choosing). Print out the tibble (just
+call the object name).
+
+```{r}
+#Install the package
+#install.packages("tidyverse")
+
+# Load necessary libraries
+library(tidyverse)
+
+#Read the data from the URL 
+glass_data <- read_csv("https://www4.stat.ncsu.edu/~online/datasets/glass.data", col_names = FALSE, show_col_types = FALSE)
+
+#Add column names
+
+colnames(glass_data) <- c("ID", "RI", "Na", "Mg", "Al", "Si", "K", "Ca", "Ba", "Fe", "Type_of_glass")
+
+#print the tibble
+
+glass_data
+
+
+```
+
+
+
+2. Start a chain that would overwrite the Type_of_glass variable using mutate(). Create a character
+string version (that is, replace 1 with “building_windows_float_processed”, 2 with “building_win. . . ”,
+etc.) instead
+
+```{r}
+# Create a character string version of Type_of_glass
+glass_data <- glass_data %>%
+  mutate(Type_of_glass = case_when(
+    Type_of_glass == 1 ~ "building_windows_float_processed",
+    Type_of_glass == 2 ~ "building_windows_non_float_processed",
+    Type_of_glass == 3 ~ "vehicle_windows_float_processed",
+    Type_of_glass == 4 ~ "vehicle_windows_non_float_processed",
+    Type_of_glass == 5 ~ "containers",
+    Type_of_glass == 6 ~ "tableware",
+    Type_of_glass == 7 ~ "headlamps",
+    TRUE ~ as.character(Type_of_glass)
+  ))
+
+# Print the updated tibble
+glass_data
+```
+
+3. Continue your chain and keep only observations where the Fe variable is less than 0.2 and the Type of
+Glass is either “tableware” or “headlamps”.
+
+```{r}
+# Create a character string version of Type_of_glass
+glass_data <- glass_data %>%
+  mutate(Type_of_glass = case_when(
+    Type_of_glass == 1 ~ "building_windows_float_processed",
+    Type_of_glass == 2 ~ "building_windows_non_float_processed",
+    Type_of_glass == 3 ~ "vehicle_windows_float_processed",
+    Type_of_glass == 4 ~ "vehicle_windows_non_float_processed",
+    Type_of_glass == 5 ~ "containers",
+    Type_of_glass == 6 ~ "tableware",
+    Type_of_glass == 7 ~ "headlamps",
+    TRUE ~ as.character(Type_of_glass)
+  )) %>% filter(Fe < 0.2 & (Type_of_glass == "tableware" | Type_of_glass == "headlamps"))
+
+# Print the updated tibble
+glass_data
+
+```
+
+### Yeast Data
+
+1. Read this data into R directly from the URL using functions from the tidyverse. Notice that the
+data doesn’t include column names - add those (in a manner of your choosing). Print out the tibble
+(just call the object name).
+```{r}
+#Read the data from the URL
+yeast_data <- read_table("https://www4.stat.ncsu.edu/~online/datasets/yeast.data", show_col_types = FALSE)
+
+# Add column names
+colnames(yeast_data) <- c("seq_name", "mcg", "gvh", "alm", "mit", "erl", "pox", "vac", "nuc", "class")
+
+#print out the tibble
+yeast_data
+
+```
+
+2. Start a chain that removes seq_name and nuc columns
+
+3. Continue your chain to add columns corresponding to the mean and median of each numeric variable
+(mcg, gvh, alm, mit, erl, pox, and vac) at each class grouping. Use the across() function from deplyr.
+
+```{r}
+# Add columns for the mean and median of each numeric variable at each class grouping
+yeast_summary <-  yeast_data %>%
+  select(-seq_name, -nuc)   %>%
+  group_by(class) %>%
+  mutate(across(c(mcg, gvh, alm, mit, erl, pox, vac), list(mean = mean, median = median), .names = "{.col}_{.fn}"))
+
+# Print out the summary tibble
+yeast_summary
+
+```
+
+## Task 2 Combining Excel and Delimited Data
+
+The data set we’ll use for this part comes from the UCI machine learning repository. There are two data sets that are ‘related to red and white variants of the Portuguese “Vinho Verde” wine.’ There are physicochemical variables and a quality score, as rated by experts.
+
+
+1. There is an excel version of the white wine data set available at https://www4.stat.ncsu.edu/~online/
+datasets/white-wine.xlsx.
+• Download this file
+• Place it in a folder you know (such as your working directory for your project)
+• Import the data from the first sheet using the readxl package
+• Print out the tibble (just call the object name)
+
+```{r}
+#Install the packages
+#install.packages("readxl")
+
+# Load necessary libraries
+library(readxl)
+
+#Import the data
+white_wine_data <- read_excel("white-wine.xlsx", sheet=1)
+
+# Print out the tibble
+white_wine_data
+
+```
+
+2. When you print the data set out to the console, you may notice that some of the variable names are
+surrounded by backticks. This is because they are non-standard (they include a space in them). We
+can rename them in a number of ways. We’ll do it by reading in the variable names from the 2nd sheet
+of the same file.
+• Read in the data from the 2nd sheet. This should return a data frame with one column containing
+alternative versions of the variable names.
+• Grab that column and overwrite the current column names (colnames()) of your white wine
+tibble.
+
+```{r}
+# Read the data from the second sheet
+variable_names <- read_excel("white-wine.xlsx", sheet = 2)
+
+# Overwrite the current column names
+colnames(white_wine_data) <- variable_names[[1]]
+
+# Print out the tibble to check the new column names
+print(white_wine_data)
+
+```
+3. Lastly, add a column to this data set to indicate the wines are white. That is, add a column that has
+values of ‘white’ for every observation.
+
+```{r}
+# Add a column indicating the type of wine
+white_wine_data$type <- "white"
+
+# Print out the tibble to check the new column
+white_wine_data
+
+```
+4. There is a semi-colon delimited version of the red wine data set available at https://www4.stat.ncsu.
+edu/~online/datasets/red-wine.csv.
+• Read this in using the readr package. Be careful that the columns are read in as the correct type!
+• You should replace the variable names as done above
+• You should append a column denoting the type as “red”
+
+```{r}
+# Install and load the readr package if you haven't already
+#install.packages("readr")
+library(readr)
+
+# Read the red wine data
+
+red_wine <- read_delim("https://www4.stat.ncsu.edu/~online/datasets/red-wine.csv", 
+                       delim = ";", locale = locale(decimal_mark = "." ), show_col_types = FALSE)
+
+
+# Replace the variable names as done above
+colnames(red_wine) <- variable_names[[1]]
+
+# Add a column indicating the type of wine
+red_wine$type <- "red"
+
+# Print out the tibble to check the new column
+print(red_wine)
+
+```
+
+5. Combine these two data sets into one data set. They both have the exact same columns so this is an
+easy append task!
+• Use the dplyr::bind_rows() function (see the help) to create one tibble containing all of the
+wine data.
+
+```{r}
+# Install and load the dplyr package if you haven't already
+#install.packages("dplyr")
+library(dplyr)
+
+# Combine the two data sets
+combined_wine <- bind_rows(white_wine_data, red_wine)
+
+# Print out the combined tibble
+print(combined_wine)
+
+```
+
+6. Start a chain on your new combined data object to filter the data to only look at high-quality wines
+(quality > 6.5) and wines that have a reasonable alcohol value (alcohol < 132).
+7. Continue your chain to now sort the data from highest quality to lowest.
+8. Continue your chain to select only the variables that contain acid, the alcohol variable, the type
+variable, and the quality variable.
+9. Continue your chain to add the mean and standard deviation of the alcohol variable to the data set
+for each setting of the quality variable.
+
+```{r}
+# Filter and sort the data
+final_wine_data <- combined_wine %>%
+  filter(quality > 6.5, alcohol < 132) %>%
+  arrange(desc(quality)) %>%
+  select(contains("acid"), alcohol, type, quality) %>% #select only required variables
+  group_by(quality) %>%
+  mutate (mean_alcohol = mean(alcohol), std_alcohol = sd(alcohol)) #get mean and std of alcohol group by quality
+# Print out the final data set
+print(final_wine_data)
+
+```
+
+
