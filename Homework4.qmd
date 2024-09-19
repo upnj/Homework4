@@ -254,9 +254,12 @@ print(combined_wine)
 
 6. Start a chain on your new combined data object to filter the data to only look at high-quality wines
 (quality > 6.5) and wines that have a reasonable alcohol value (alcohol < 132).
+
 7. Continue your chain to now sort the data from highest quality to lowest.
+
 8. Continue your chain to select only the variables that contain acid, the alcohol variable, the type
 variable, and the quality variable.
+
 9. Continue your chain to add the mean and standard deviation of the alcohol variable to the data set
 for each setting of the quality variable.
 
